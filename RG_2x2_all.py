@@ -1,0 +1,270 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Nov 11 21:36:24 2020
+
+@author: Thomas Stinglhamber (De La Physique)
+"""
+
+import sympy as sp
+from pprint import pprint
+import numpy as np
+
+""" definition constantes """
+
+R = sp.Symbol('R')
+r = sp.Symbol('r')
+o = sp.Symbol('o') # theta
+p = sp.Symbol('p') # phi
+t = sp.Symbol('t')
+n = sp.Symbol('n')
+
+""" Definition metrique """ 
+
+g = [[1,0],
+     [0,r**2]]
+
+""" variable de la métrique """
+k=[t,r]
+# on derive la metrique par rapport a ces indices
+
+""" Chemin pour créer le fichier .txt avec le code LaTeX """
+
+Path ="/Users/thomasstinglhamber/Desktop/RG_ALL/LaTeX_RG_2x2.txt" # changer pour mettre votre chemin
+
+
+ToLaTeX = True # False pour pas générer le fichier.txt
+
+
+#--------------------- Plus rien a modifier à partir d'ici -----------------------
+f = open(Path, "w")
+
+""" calcul de la métrique inverse """
+g2=sp.Matrix(([g[0][0],g[1][0]],
+              [g[0][1],g[1][1]]
+              ))
+
+g_inv= g2.inv()     # inverse la metrique
+
+
+
+
+print("\u0332".join("Metrique : "))
+pprint(g)
+print()
+    
+def Christo2x2():
+    # Matrice pour calculer les symboles de Christofell
+
+    Christofell=[]
+    Christo= [[0,0],[0,0]]
+    Christo_1= [[0,0],[0,0]]
+    Christo_2= [[0,0],[0,0]]
+
+    """ definition des symboles de Christofell """
+    print("\u0332".join("Symbole de Christofell: "))
+    for m in range(2):
+        for l in range(2):
+            for i in range(2):
+                for j in range(2):
+                    Christo[i][j] = 1/2 * g_inv[l,m]*(sp.diff(g[l][i],k[j])+sp.diff(g[j][l],k[i])-sp.diff(g[i][j],k[l]))
+                    if Christo[i][j] !=0:
+                        print("C|",k[m],k[i],k[j],":",Christo[i][j])
+                        if m ==0:
+                            Christo_1[i][j] =Christo[i][j]
+                        if m ==1 :
+                            Christo_2[i][j] =Christo[i][j]
+
+    Christofell =[Christo_1,Christo_2]
+    print()
+    for i in range(2):
+        print("Christofell selon",k[i],":")
+        pprint(Christofell[i])
+        print()
+
+    return Christofell
+        
+def Riemann(Christofell):
+    # Matrices pour calculer le tenseur de Riemann
+    Ri=[[0,0],[0,0]]
+    Rl0=[[0,0],[0,0]]
+    R_l0n0=[[0,0],[0,0]]
+    R_l0n1=[[0,0],[0,0]]
+    Rl1=[[0,0],[0,0]]
+    R_l1n0=[[0,0],[0,0]]
+    R_l1n1=[[0,0],[0,0]]
+    R =[]
+    """ définition du tenseur de Riemann """
+    
+    print("\u0332".join("Tenseur de Riemann :"))
+    for l in range(2):
+        for i in range(2):
+            for j in range(2):
+                for n in range(2):
+                    for m in range(2):
+                        Ri[j][n] = ((sp.diff(Christofell[l][i][j],k[n]))-(sp.diff(Christofell[l][i][n],k[j])) +((Christofell[m][i][j])*(Christofell[l][m][n]))-((Christofell[m][i][n])*(Christofell[l][m][j])))
+                    if m==1:
+                        if Ri[j][n] !=0:
+                            print("R|",k[l],k[i],k[j],k[n],":",sp.simplify(Ri[j][n]))
+                            
+                            if l==0:
+                                if i ==0:
+                                    R_l0n0[j][n]= Ri[j][n]
+                                if i ==1:
+                                    R_l0n1[j][n]= Ri[j][n]
+                            if l==1:
+                                if i ==0:
+                                    R_l1n0[j][n]= Ri[j][n]
+                                if i ==1:
+                                    R_l1n1[j][n]= Ri[j][n]
+    
+    
+    Rl0 =[R_l0n0,R_l0n1]
+    Rl1 =[R_l1n0,R_l1n1]
+    R =[Rl0,Rl1]
+    print()
+    for i in range(2):  
+        print("Riemann selon",k[i],":")
+        pprint(R[i])
+        print()                 
+    #print(R)
+    return R 
+
+def Ricci(R):
+    # Matrice pour calculer tenseur de Ricci
+    ricci1=[[0,0],[0,0]]
+    ricci=[[0,0],[0,0]]
+    
+    """ Ricci """
+    print("\u0332".join("Tenseur de Ricci :"))
+    for l in range(2):
+        for i in range(2):
+            for j in range(2):
+                ricci1[i][j] = R[l][i][j][l]
+                if ricci1[i][j]!=0:
+                    ricci[i][j]=ricci1[i][j]
+                        
+    pprint(ricci)
+    print()
+    
+    return ricci
+
+def Courbure_scalaire(ricci):
+    # Matrice pour calculer la courbure scalaire
+    scalaire=[[0,0],[0,0]]
+    
+    """ courbure  scalaire """
+    print("\u0332".join("Courbure scalaire :"))
+    for i in range(2):
+        for j in range(2):
+            scalaire[i][j]= g_inv[i,j]* ricci[i][j]
+            
+    somme = scalaire[0][0]+scalaire[1][0]+scalaire[0][1]+scalaire[1][1]  
+    print(somme)
+    return somme
+
+"""--------------- Partie pour générer le code LaTeX ----------------- """
+
+
+def PythonToLaTeX(Christofell,R,ricci,somme):
+        
+    def pmatrix(a):
+        
+        lines = str(a).replace('[', '').replace(']', '').replace(' - ','-').replace(' + ','+').splitlines()
+        rv = [r' $$\begin{pmatrix}']
+        rv += ['  ' + ' ,& '.join(l.split()) + r'\\' for l in lines]
+        rv +=  [r'\end{pmatrix}$$']   
+        return '\n'.join(rv)
+    
+    def Tensor_matrix(a):
+        rv = [r'$$ \begin{pmatrix}']
+        for i in range(len(a)):
+            rv += [r' \begin{pmatrix}']
+            for j in range(len(a[i])):
+                lines = str(a[i][j]).replace('[', '').replace(']', '').replace(' - ','-').replace(' + ','+').splitlines()
+                rv += ['  ' + ', & '.join(l.split()) + r'\\' for l in lines]
+            rv +=  [r'\end{pmatrix}\\'] 
+        rv +=  [r'\end{pmatrix}$$'] 
+        return '\n'.join(rv)
+    
+    print('\setlength\parindent{0pt}',file=f)
+    print('\section{RG2x2}',file=f)
+    print('\subsection{Métrique}',file=f)
+    print(pmatrix(np.array(g)),'\n',file=f)
+    print('\subsection{Christofell}',file=f)
+    for m in range(2):
+        for i in range(2):
+            for j in range(2):
+                if Christofell[m][i][j] != 0:
+                    print('$\Gamma^{',k[m],'}_{',k[i],k[j],'}',"=",Christofell[m][i][j],r'$\\', file=f)
+                else :pass
+        print('\n',file=f)
+            
+            
+    #print('Symboles de Christofell',KKKmatrix(np.array(Christofell)))
+    for i in range(2):
+        print('\paragraph{Symbole de Christofell selon $',k[i],'$ :}\n',pmatrix(np.array(Christofell[i])) + '\n', file=f)
+    
+    print('\subsection{Riemann}',file=f)
+    for l in range(2):
+        for i in range(2):
+            for j in range(2):
+                for n in range(2):
+                    if R[l][i][j][n] !=0:
+                        print('$R^{',k[l],'}_{',k[i],k[j],k[n],'}',"=",R[l][i][j][n],r'$\\', file=f)
+        print('\n',file=f)
+        
+    #print('Tenseur de Riemann',KKKmatrix(np.array(R)))
+        
+    for i in range(2):
+        print('\paragraph{Tenseur de Riemann selon $',k[i],'$ :}\n',Tensor_matrix(np.array(R[i])) + '\n', file=f)
+        
+    print('\subsection{Ricci}',file=f)
+    for l in range(2):
+        for i in range(2):
+            for j in range(2):
+                if R[l][i][j][l] !=0:
+                        print('$R\mathrm{icci}_{',k[i],k[j],'}',"=",R[l][i][j][l],r'$\\', file=f)
+        print('\n',file=f)
+    
+    print('\paragraph{Tenseur de Ricci} ','\n',pmatrix(np.array(ricci)) + '\n', file=f)
+    print('\paragraph{Courbure scalaire} ','\n','$$',somme , '$$',file=f)
+    
+        
+    f.close()
+
+
+
+Christofell= Christo2x2()
+R =Riemann(Christofell)
+ricci=Ricci(R)
+somme=Courbure_scalaire(ricci)
+
+
+if ToLaTeX == True:
+    PythonToLaTeX(Christofell,R,ricci,somme) 
+    f1 = open(Path, 'r')
+    input_data = f1.read()
+    f1.close()
+    
+    theta_1 =' \sin(\\theta)'
+    theta_4 =' \cos(\\theta)'
+    theta_2 =' \\theta '
+    phi_2 =' \sin(\phi)'
+    phi_3 =' \cos(\phi)'
+    input_data = input_data.replace('o ', theta_2.replace('\t', '')).replace('p ' , ' \phi ').replace('**', '^').replace('cos(o)', theta_4.replace('\t', '')).replace('sin(o)', theta_1.replace('\t', '')).replace('sin(p)', phi_2).replace('cos(p)', phi_3).replace('*' , '').replace('1.00000000000000' , '1').replace('1.0/' , '1/').replace('1.0+' , '1+').replace('1.0-' , '1-').replace('1.0' , '')                                          
+    
+    f2 = open(Path, 'w')
+    f2.write(input_data)
+    f2.close()
+    print('\n','Fichier .txt généré')
+else :pass
+
+
+
+
+
+
+
+
+    
