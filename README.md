@@ -19,9 +19,8 @@ Python code to generate the symbols of Christofell, the Riemann tensor, Ricci an
 
 by setting your path and setting the variable "ToLaTeX" = True (False to not generate the file).
 
-After running the code, a txt file. will appear following the path
-Just copy paste it into Overleaf to see more easily
-the results only in the terminal.
+After running the code, a txt file. will appear following the path. 
+Just copy paste it into Overleaf to see more easily the results than in the terminal.
 
 
 #### There is nothing more to modify
